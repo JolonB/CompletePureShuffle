@@ -57,9 +57,9 @@ int main(int argc, char **argv) {
     }
 
     /* Create checking array and counter */
-    char *check;
     int char_bits = sizeof(char)*8;
     int array_len = n/char_bits + (n%char_bits!=0);
+    char *check = (char*)malloc(array_len);
 
     /* Initialise random number generator */
     srand(time(NULL));
@@ -75,7 +75,6 @@ int main(int argc, char **argv) {
         #ifdef DEBUG
         printf("Iteration %i:\n", i+1);
         #endif
-        check = (char*)malloc(array_len);
         memset(check, 0, array_len); // must use memset as calloc is not zeroing past the 8th byte
 
         long counter = n;
@@ -106,12 +105,12 @@ int main(int argc, char **argv) {
         mean += total/iter + remainder/iter;
         remainder = remainder%iter + total%iter;
 
-        free(check);
-
         #ifdef DEBUG
         printf("\tTotal: %li\n", total);
         #endif
     }
+
+    free(check);
 
     printf("Mean random selections: %.3f\n", mean+remainder/(1.0*iter));
 
