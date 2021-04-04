@@ -2,6 +2,7 @@
 
 A simulator to determine how many items you need to pull from an infinite random set until you have the entire set.
 For example, this can be used to work out how many times you need to roll a fair six-sided die until you see each number at least once.
+This problem is known as the [Coupon collector's problem](https://en.wikipedia.org/wiki/Coupon_collector%27s_problem) (as I only found out *after* writing all this code).
 
 This code offers two different solutions: the mean and the mode.
 The mean can be thought of as a situation where you have thousands of people all rolling dice until they see each face once.
@@ -28,12 +29,13 @@ There are several compiler flags that can be used to modify the behaviour of the
 | --- | --- |
 | `MEAN` | Returns the mean value of all the runs |
 | `MODE` | Returns the mode of the run |
-| `FREQ_TABLE` | Returns the count of each value when used in conjunction with MODE |
+| `MEDIAN` | Returns the median of the run |
+| `FREQ_TABLE` | Returns the count of each value when used in conjunction with `MEDIAN` or `MODE` |
 | `DEBUG` | Prints debug output while running |
 | `VERBOSE` or `V` | Prints verbose debug output when used in conjunction with DEBUG |
 | `TOTAL_PRINT` | Prints the total of each run |
 
-At least one of `MEAN` or `MODE` must be used otherwise no result will be printed.
+At least one of `MEAN`, `MEDIAN`, or `MODE` must be used otherwise no result will be printed.
 All other flags are optional.
 
 ```shell
@@ -46,7 +48,7 @@ For example, if you want to print the mean, mode, and the frequency table for th
 gcc shuffler.c -o shuffler -DMEAN -DMODE -DFREQ_TABLE
 ```
 
-The order of the flags does not matter.
+The order of the flags does not matter, but they must all begin with `-D`.
 
 ## Running
 
@@ -63,19 +65,19 @@ where `n` is the number of different random items to choose from and `i` is the 
 You may be curious about the results for some numbers.
 Each of these tests was done for one million runs `./shuffler n 1000000`, however, results may still vary between runs.
 
-| `n` | Mean | Mode |
-| --- | --- | --- |
-| 2 | 2 | 3 |
-| 3 | 5.5 | 4 |
-| 4 | 8.333 | 6 |
-| 5 | 11.417 | 8 |
-| 6 | 14.700 | 11 |
-| 8 | 21.743 | 17 |
-| 10 | 29.290 | 23 |
-| 12 | 37.239 | 28 |
-| 20 | 71.955 | 59 |
-| 52 | 235.978 | 209 |
-| 54 | 247.073 | 217 |
+| `n` | Mean | Median | Mode |
+| --- | --- | --- | --- |
+| 2 | 2 | 2 | 3 |
+| 3 | 5.5 | 5 | 4 |
+| 4 | 8.333 | 7 | 6 |
+| 5 | 11.417 | 10 | 8 |
+| 6 | 14.700 | 13 | 11 |
+| 8 | 21.743 | 20 | 17 |
+| 10 | 29.290 | 27 | 23 |
+| 12 | 37.239 | 35 | 28 |
+| 20 | 71.955 | 67 | 59 |
+| 52 | 235.978 | 225 | 209 |
+| 54 | 247.073 | 235 | 217 |
 
 As `n` increases, the mode (and, to a lesser extent, the mean) begins to vary significantly between runs.
 
@@ -85,7 +87,7 @@ There is a mathematical way to find a solution to this problem, which is great b
 
 ### Mean
 
-Without going into the details of how this expression was found (hint: it uses probabilities and expected values), the equation for the mean is given below:
+Without going into the details of how this expression was found (hint: it uses probabilities and expected values, but is not quite the same as in the Wikipedia article for the [Coupon collector's problem](https://en.wikipedia.org/wiki/Coupon_collector%27s_problem), I promise), the equation for the mean is given below:
 
 <img src="https://render.githubusercontent.com/render/math?math=n\sum_{k=1}^n \frac{1}{k}">
 
@@ -97,9 +99,13 @@ It can even be approximated for large `n` with:
 
 where <img src="https://render.githubusercontent.com/render/math?math=\gamma=0.57721\ldots"> is the [Euler-Mascheroni constant](https://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant).
 
+### Median
+
+I haven't come up with a mathematical expression for this yet, but the median is expressed by [OEIS Sequence A073593](https://oeis.org/A073593).
+
 ### Code
 
-There is also a software implementation for this so you can compare the speed for yourself.
+There is also a software implementation for the mean so you can compare the speed for yourself.
 The time complexity is `O(n)` as opposed to `O(ni)` for the non-mathematical implementation, where `i` is the number of iterations.
 
 As with the non-mathematical implementation, the code can be compiled the same way (but using the `math_shuffler.c` file instead) with the following compiler flags:

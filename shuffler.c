@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     long remainder = 0;
     #endif
 
-    #ifdef MODE
+    #if defined(MODE) || defined(MEDIAN)
     short indices = (N_TIMES-1)*n;
     short mode_index;
     /* Initialise a variable for the current mode's index. The mode will be current_mode+n */
@@ -100,10 +100,8 @@ int main(int argc, char **argv) {
 
         while (counter) {
             rand_num = rand()%n;
-            #ifdef DEBUG
-            #ifdef VERBOSE
+            #if defined(DEBUG) && defined(VERBOSE)
             printf("Num: %i\n", rand_num);
-            #endif
             #endif
             counter -= check_bit(check, rand_num, char_bits);
             total++;
@@ -111,13 +109,11 @@ int main(int argc, char **argv) {
                 printf("\t Failed with %li found\n", n-counter);
                 break;
             }
-            #ifdef DEBUG
-            #ifdef VERBOSE
+            #if defined(DEBUG) && defined(VERBOSE)
             for (int i = 0; i < array_len; i++) {
                 print_bin(check[i]);
             }
             printf("Counter: %li\n", counter);
-            #endif
             #endif
         }
 
@@ -130,7 +126,7 @@ int main(int argc, char **argv) {
         remainder = remainder%iter + total%iter;
         #endif
 
-        #ifdef MODE
+        #if defined(MODE) || defined(MEDIAN)
         mode_index = total-n;
         freq_table[mode_index]++;
         // if (freq_table[mode_index] > freq_table[current_mode]) {
@@ -145,25 +141,60 @@ int main(int argc, char **argv) {
 
     free(check);
 
+    #if defined(MODE) || defined(MEDIAN)
     #ifdef MODE
     mode_index = 0;
+    #endif
+    #ifdef MEDIAN
+    float median;
+    int midway = iter/2; // will round down for odd numbers
+    #endif
     #ifdef FREQ_TABLE
     printf("Total , Frequency");
     #endif
     
     for (indices--; indices >= 0; indices--) {
+        #ifdef MODE
         if (freq_table[indices] > freq_table[mode_index]) {
             mode_index = indices;
         }
+        #endif
+        #ifdef MEDIAN
+        if (midway > 0) {
+            midway -= freq_table[indices];
+            #if defined(DEBUG) && defined(VERBOSE)
+            printf("%i -- %i\n", midway, indices);
+            #endif
+            if (midway <= 0) {
+                if (iter % 2 != 0 || midway != 0) {
+                    median = indices;
+                } else {
+                    /* Only if the program reduces the midway point to exactly zero does it mean that the median is the average of 2 different values when iter % 2 != 0. Assuming a high number of samples, the next value will always be in the previous (+1) index, so we can just add 0.5 */
+                    median = indices + 0.5;
+                }
+                #ifndef MODE
+                /* Break if we aren't also trying to calculate the mode */
+                break;
+                #endif
+            }
+        } 
+        #endif
         #ifdef FREQ_TABLE
         printf("%i , %i\n", indices+n, freq_table[indices]);
         #endif
     }
-    printf("Mode random selections: %i\n", mode_index+n);
     #endif
 
     #ifdef MEAN
     printf("Mean random selections: %.3f\n", mean+remainder/(1.0*iter));
+    #endif
+
+    #ifdef MEDIAN
+    printf("Median random selections: %.1f\n", median+n);
+    #endif
+
+    #ifdef MODE
+    printf("Mode random selections: %i\n", mode_index+n);
     #endif
 
     exit(0);
